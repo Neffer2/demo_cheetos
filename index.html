@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheetos Pop Mix - Plataforma de Puntos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Bold Graphic Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:ital,wght@0,400;0,700;0,900;1,900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --cheetos-orange: #ff5500;
+            --cheetos-yellow: #ffe600;
+            --cheetos-red: #d91010;
+            --cheetos-bg-dark: #0a0402;
+            --cheetos-card-bg: rgba(18, 10, 7, 0.88);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--cheetos-bg-dark);
+            color: #ffffff;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(255, 85, 0, 0.25) 0%, transparent 45%),
+                radial-gradient(circle at 85% 30%, rgba(255, 180, 0, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(217, 16, 16, 0.2) 0%, transparent 50%);
+            min-height: 100vh;
+        }
+
+        .font-anton {
+            font-family: 'Anton', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        /* Glowing Neons and Frames matching Mockup */
+        .neon-border-orange {
+            border: 2px solid #ff7700;
+            box-shadow: 0 0 15px rgba(255, 119, 0, 0.5), inset 0 0 15px rgba(255, 119, 0, 0.3);
+        }
+
+        .neon-tv-frame {
+            border: 3px solid #ff5500;
+            border-radius: 24px;
+            box-shadow: 0 0 25px rgba(255, 85, 0, 0.6), inset 0 0 20px rgba(255, 85, 0, 0.4);
+            position: relative;
+        }
+
+        .neon-tv-frame::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border: 1px solid rgba(255, 150, 0, 0.4);
+            border-radius: 30px;
+            pointer-events: none;
+        }
+
+        .cheetos-input {
+            background: rgba(10, 5, 3, 0.85);
+            border: 1px solid #ff7700;
+            border-radius: 8px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .cheetos-input:focus {
+            outline: none;
+            border-color: #ffe600;
+            box-shadow: 0 0 12px rgba(255, 230, 0, 0.6);
+        }
+
+        /* Custom Buttons matching image gradients */
+        .btn-ver-mas {
+            background: linear-gradient(180deg, #ff2a00 0%, #b30000 100%);
+            box-shadow: 0 4px 15px rgba(255, 42, 0, 0.5), inset 0 2px 2px rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            text-shadow: 1px 2px 4px rgba(0,0,0,0.6);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-ver-mas:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(255, 85, 0, 0.7);
+        }
+
+        .btn-ver-mas:active {
+            transform: translateY(1px);
+        }
+
+        .btn-yellow-pill {
+            background: linear-gradient(180deg, #ffee00 0%, #ffaa00 100%);
+            color: #d91010;
+            font-weight: 900;
+            border-radius: 12px;
+            box-shadow: 0 0 12px rgba(255, 230, 0, 0.6);
+        }
+
+        /* Floating Animation */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(2deg); }
+        }
+
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; filter: drop-shadow(0 0 15px #ff5500); }
+        }
+
+        .glow-pulse {
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #110804;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ff5500;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between relative selection:bg-orange-500 selection:text-white">
+
+    <header class="w-full bg-black/60 backdrop-blur-md border-b border-orange-500/30 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Cheetos Brand Header -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('dashboard')">
+                <div class="bg-gradient-to-r from-yellow-400 to-red-600 p-1.5 rounded-xl shadow-lg shadow-orange-500/20 transform hover:scale-105 transition">
+                    <span class="font-anton text-2xl tracking-wider text-black px-2 italic uppercase">CHEETOS</span>
+                </div>
+                <span class="bg-red-600 text-white font-black text-xs px-2 py-0.5 rounded transform -skew-x-12 uppercase">
+                    POP MIX
+                </span>
+            </div>
+
+            <!-- Header Navigation / User Status (When Logged In) -->
+            <div id="header-user-bar" class="hidden flex items-center space-x-4">
+                <div class="flex items-center space-x-2 bg-orange-950/80 border border-orange-500/50 px-3 py-1.5 rounded-full">
+                    <i class="fa-solid fa-coins text-yellow-400 animate-bounce"></i>
+                    <span class="text-xs text-orange-200">Mis Puntos:</span>
+                    <span id="user-points-display" class="font-anton text-lg text-yellow-400 tracking-wide">4.450</span>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-500 to-yellow-400 flex items-center justify-center text-black font-bold text-sm">
+                        <span id="user-initials">CV</span>
+                    </div>
+                    <span id="user-name-display" class="hidden sm:inline text-sm font-bold text-gray-200">Camilo Vargas</span>
+                </div>
+
+                <button onclick="logout()" class="text-xs text-orange-400 hover:text-yellow-400 transition flex items-center gap-1 bg-red-950/40 border border-red-800/40 px-2.5 py-1.5 rounded-lg">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span class="hidden md:inline">Salir</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-3 sm:p-6 md:p-8 relative">
+        
+        <!-- Outer Glowing Frame simulating TV Mockup Screen -->
+        <div class="w-full max-w-5xl bg-black/80 neon-tv-frame p-3 sm:p-6 md:p-8 relative overflow-hidden backdrop-blur-xl">
+
+            <!-- Decorative Floating Background Graphic Elements -->
+            <div class="absolute -top-10 -left-10 w-40 h-40 bg-orange-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-10 -right-10 w-60 h-60 bg-red-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <section id="view-login" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                
+                <!-- Left Visual Column: Cheetos Pop Mix Pack Visual -->
+                <div class="md:col-span-6 flex flex-col items-center justify-center relative py-4">
+                    <div class="relative w-full max-w-xs sm:max-w-sm animate-float">
+                        <!-- Streaming Badge -->
+                        <div class="absolute -top-2 left-4 z-20 bg-gradient-to-r from-orange-600 to-red-600 text-white font-extrabold text-xs px-3 py-1 rounded-md shadow-lg flex items-center gap-1 border border-orange-400 transform -rotate-3">
+                            <span>PARA EL STREAMING</span>
+                            <i class="fa-solid fa-play text-[10px]"></i>
+                        </div>
+
+                        <!-- Black Warning Octagon (Minsalud design from mockup) -->
+                        <div class="absolute top-2 right-2 z-20 bg-black border-2 border-white text-white text-[9px] font-bold px-2 py-1 text-center rounded leading-tight uppercase">
+                            CONTIENE<br>EDULCORANTES
+                            <div class="text-[7px] text-gray-400 mt-0.5">MINSALUD</div>
+                        </div>
+
+                        <!-- NUEVO Tag Sticker -->
+                        <div class="absolute top-24 -left-4 z-20 bg-white text-red-600 font-anton text-xl px-3 py-0.5 shadow-xl transform -rotate-12 border-2 border-red-600">
+                            NUEVO
+                        </div>
+
+                        <!-- SVG Styled Snack Bag Artwork -->
+                        <div class="relative mx-auto rounded-3xl p-2 bg-gradient-to-b from-orange-600/30 via-red-950/40 to-black border border-orange-500/40 shadow-2xl">
+                            <!-- Popcorn & Cheetos Visual Artwork Placeholder -->
+                            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-950 via-black to-red-950 p-6 border border-orange-500/30 flex flex-col items-center text-center">
+                                <!-- Glowing TV/Streaming Frame Graphic Behind -->
+                                <div class="absolute inset-4 border border-orange-500/30 rounded-xl pointer-events-none"></div>
+                                
+                                <div class="mt-4 mb-2">
+                                    <img src="./kv.png" alt="Cheetos Pop Mix Key Visual">
+                                </div>
+
+                                <!-- <div class="my-3 flex items-center justify-center gap-3">
+                                    <span class="text-3xl">🍿</span>
+                                    <span class="text-3xl">🧀</span>
+                                    <span class="text-3xl">🍯</span>
+                                </div> -->
+
+                                <!-- <div class="bg-gradient-to-r from-orange-600 to-amber-700 text-white font-bold text-xs px-4 py-1 rounded-full uppercase tracking-wider border border-yellow-400/50">
+                                    Queso + Caramelo
+                                </div> -->
+                            </div>
+                        </div>
+
+                        <!-- Remote Control Icon (Mockup Element) -->
+                        <div class="absolute -bottom-4 -left-2 z-20 bg-black/90 border border-orange-500/60 p-2 rounded-xl text-orange-400 shadow-lg flex items-center justify-center w-12 h-16 transform -rotate-12">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="w-4 h-4 rounded-full border border-orange-400 flex items-center justify-center">
+                                    <div class="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
+                                </div>
+                                <div class="w-full h-0.5 bg-orange-500/40"></div>
+                                <div class="grid grid-cols-2 gap-1 text-[8px]">
+                                    <i class="fa-solid fa-play"></i>
+                                    <i class="fa-solid fa-pause"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Form Column: Registro / Login Panel -->
+                <div class="md:col-span-6 bg-black/75 border border-orange-500/50 rounded-2xl p-6 sm:p-8 shadow-2xl relative">
+                    
+                    <!-- Form Tabs matching the yellow header pill in Image 1 -->
+                    <div class="flex items-center justify-between gap-2 mb-6 bg-black/80 p-1.5 rounded-xl border border-orange-500/30">
+                        <button id="tab-registro-btn" onclick="switchAuthTab('registro')" class="w-1/2 py-2 text-center font-anton text-xl tracking-wide uppercase transition rounded-lg text-gray-300 hover:text-white">
+                            REGISTRO
+                        </button>
+                        <button id="tab-login-btn" onclick="switchAuthTab('login')" class="w-1/2 py-2 text-center font-anton text-xl tracking-wide uppercase transition btn-yellow-pill">
+                            LOGIN
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Auth Form -->
+                    <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                        
+                        <!-- Full Name Field (shown on register or login) -->
+                        <div>
+                            <label id="lbl-name" class="block text-xs uppercase font-bold text-orange-400 mb-1">Nombre</label>
+                            <input type="text" id="input-name" placeholder="Ej. Camilo Vargas" required value="Camilo Vargas" class="w-full px-4 py-3 cheetos-input font-medium text-sm">
+                        </div>
+
+                        <!-- Password Field -->
+                        <div>
+                            <label class="block text-xs uppercase font-bold text-orange-400 mb-1">Contraseña</label>
+                            <input type="password" id="input-password" placeholder="••••••••" required value="123456" class="w-full px-4 py-3 cheetos-input font-medium text-sm">
+                        </div>
+
+                        <!-- Forgot password link -->
+                        <div id="forgot-pass-container" class="text-right">
+                            <a href="#" onclick="showNotification('Demo: Ingresa con cualquier contraseña ficticia')" class="text-xs text-gray-400 hover:text-orange-400 transition underline">
+                                Olvidé mi contraseña
+                            </a>
+                        </div>
+
+                        <!-- Submit Button matching VER MÁS style -->
+                        <div class="pt-4">
+                            <button type="submit" class="w-full py-3 px-6 btn-ver-mas font-anton text-2xl tracking-wider uppercase text-white cursor-pointer italic">
+                                VER MÁS
+                            </button>
+                        </div>
+                    </form>
+
+                    <p class="text-center text-[11px] text-gray-500 mt-4 italic">
+                        * Demo interactivo para clientes. Simulación sin backend.
+                    </p>
+                </div>
+            </section>
+
+            <section id="view-dashboard" class="hidden space-y-6">
+                
+                <!-- Platform Navigation Menu Header inside Dashboard -->
+                <div class="bg-black/90 border border-orange-500/50 rounded-2xl p-3 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-xl">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">⚡</span>
+                        <div>
+                            <h1 class="font-anton text-2xl text-yellow-400 leading-tight uppercase">PLATAFORMA STREAMER</h1>
+                            <p class="text-xs text-gray-400">Acumula puntos y redime increíbles premios</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons Menu -->
+                    <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        <button onclick="switchDashboardTab('ranking')" id="btn-tab-ranking" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs uppercase transition border border-yellow-400/50 bg-yellow-400 text-black shadow-lg shadow-yellow-500/20">
+                            <i class="fa-solid fa-trophy mr-1.5"></i> Ranking
+                        </button>
+                        <button onclick="switchDashboardTab('subir-factura')" id="btn-tab-factura" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs uppercase transition border border-orange-500/50 bg-orange-950/80 text-orange-300 hover:bg-orange-600 hover:text-white">
+                            <i class="fa-solid fa-camera mr-1.5"></i> Registrar Compras
+                        </button>
+                        <button onclick="switchDashboardTab('consultar-puntos')" id="btn-tab-puntos" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs uppercase transition border border-orange-500/50 bg-orange-950/80 text-orange-300 hover:bg-orange-600 hover:text-white">
+                            <i class="fa-solid fa-gift mr-1.5"></i> Consultar Puntos
+                        </button>
+                    </div>
+                </div>
+
+                <div id="subview-ranking" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    
+                    <!-- Left Side Product Graphic (matching mockup) -->
+                    <div class="md:col-span-5 hidden sm:flex flex-col items-center justify-center relative py-2">
+                        <div class="relative w-full max-w-xs animate-float">
+                            <!-- Stream Label -->
+                            <div class="absolute -top-1 left-2 z-20 bg-gradient-to-r from-orange-600 to-red-600 text-white font-extrabold text-[10px] px-2.5 py-0.5 rounded shadow">
+                                PARA EL STREAMING ►
+                            </div>
+
+                            <!-- Cheetos Pack Container -->
+                            <div class="p-4 rounded-3xl bg-gradient-to-b from-orange-600/20 via-black to-red-950 border border-orange-500/40 shadow-2xl text-center">
+                                <h3 class="font-anton text-3xl text-yellow-400 italic">Cheetos</h3>
+                                <div class="bg-white text-red-600 font-anton text-xl inline-block px-2 py-0.5 my-1">
+                                    POP MIX
+                                </div>
+                                <div class="text-xs text-orange-300 font-bold mt-2">
+                                    ¡Subiendo facturas subes de nivel!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side Table View matching Image 2 mockup -->
+                    <div class="md:col-span-7 bg-black/85 border border-orange-500/60 rounded-2xl p-4 sm:p-6 shadow-2xl">
+                        
+                        <!-- Yellow Pill Table Header matching Image 2 -->
+                        <div class="btn-yellow-pill py-2.5 px-6 rounded-xl flex items-center justify-between mb-4 shadow-lg">
+                            <span class="font-anton text-2xl tracking-wider text-red-600 uppercase">NOMBRE</span>
+                            <span class="font-anton text-2xl tracking-wider text-red-600 uppercase">PUNTOS</span>
+                        </div>
+
+                        <!-- Ranking List Rows -->
+                        <div id="ranking-list-container" class="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
+                            <!-- Dynamic Content populated by JS -->
+                        </div>
+
+                        <!-- Bottom Button matching Mockup VER MÁS -->
+                        <div class="mt-5 flex justify-end">
+                            <button onclick="switchDashboardTab('subir-factura')" class="px-8 py-2.5 btn-ver-mas font-anton text-xl tracking-wider uppercase text-white italic">
+                                VER MÁS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="subview-subir-factura" class="hidden bg-black/85 border border-orange-500/60 rounded-2xl p-6 shadow-2xl max-w-2xl mx-auto">
+                    <div class="flex items-center gap-3 mb-6 border-b border-orange-500/30 pb-4">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-2xl text-white shadow-lg">
+                            📸
+                        </div>
+                        <div>
+                            <h2 class="font-anton text-2xl text-yellow-400 tracking-wide uppercase">Registrar Compras</h2>
+                            <p class="text-xs text-gray-300">Sube tu selfie disfrutando Cheetos Pop Mix abierto y acumula puntos al instante.</p>
+                        </div>
+                    </div>
+
+                    <form id="form-upload-invoice" onsubmit="handleInvoiceUpload(event)" class="space-y-5">
+                        <!-- Product Selector -->
+                        <div>
+                            <label class="block text-xs font-bold text-orange-400 uppercase mb-1">
+                                <i class="fa-solid fa-box-open mr-1"></i> Producto Participante en la Promo
+                            </label>
+                            <select id="invoice-product" class="w-full px-4 py-3 cheetos-input font-medium text-sm">
+                                <option value="Cheetos Pop Mix Queso + Caramelo 45g" data-pts="500">Cheetos Pop Mix Queso + Caramelo 45g (+500 PTS)</option>
+                                <option value="Cheetos Pop Mix Queso + Caramelo 120g" data-pts="1200" selected>Cheetos Pop Mix Queso + Caramelo 120g (+1.200 PTS)</option>
+                                <option value="Cheetos Pop Mix Familiar 220g" data-pts="2500">Cheetos Pop Mix Familiar 220g (+2.500 PTS)</option>
+                            </select>
+                        </div>
+
+                        <!-- Selfie Upload Box -->
+                        <div>
+                            <label class="block text-xs font-bold text-orange-400 uppercase mb-1">
+                                <i class="fa-solid fa-camera mr-1"></i> Selfie con el Producto Abierto
+                            </label>
+                            <div id="dropzone" onclick="triggerFileInput()" class="border-2 border-dashed border-orange-500/60 rounded-xl p-6 text-center bg-orange-950/20 hover:bg-orange-950/40 transition cursor-pointer relative">
+                                <input type="file" id="invoice-file-input" accept="image/*" class="hidden" onchange="previewInvoiceFile(this)">
+                                <i class="fa-solid fa-camera-retro text-4xl text-orange-400 mb-2 animate-pulse"></i>
+                                <p id="upload-preview-text" class="text-xs text-gray-300 font-medium">
+                                    Haz clic o sube una foto / selfie mostrando tu Cheetos Pop Mix abierto<br>
+                                    <span class="text-[10px] text-gray-500">(JPG, PNG max 10MB)</span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="pt-2">
+                            <button type="submit" id="btn-submit-invoice" class="w-full py-3.5 btn-ver-mas font-anton text-2xl tracking-wider uppercase text-white flex items-center justify-center gap-2">
+                                <span>REGISTRAR Y GANAR PUNTOS</span>
+                                <i class="fa-solid fa-bolt text-yellow-300"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="subview-consultar-puntos" class="hidden space-y-6">
+                    <!-- Points Summary Header Card -->
+                    <div class="bg-gradient-to-r from-orange-950/90 via-black to-red-950/90 border border-orange-500/60 rounded-2xl p-6 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-widest text-orange-400">Balance Actual</span>
+                            <div class="flex items-baseline space-x-2 mt-1">
+                                <span id="puntos-large-val" class="font-anton text-5xl sm:text-6xl text-yellow-400 tracking-wide">4.450</span>
+                                <span class="font-anton text-2xl text-orange-300">PTS</span>
+                            </div>
+                            <p class="text-xs text-gray-300 mt-1">¡Estás a solo <strong class="text-yellow-400">550 pts</strong> de redimir un bono Xbox Game Pass!</p>
+                        </div>
+
+                        <button onclick="switchDashboardTab('subir-factura')" class="px-6 py-3 btn-ver-mas font-anton text-xl tracking-wider text-white uppercase italic">
+                            + REGISTRAR COMPRA
+                        </button>
+                    </div>
+
+                    <!-- Rewards Gallery: Xbox, Nequi & Netflix -->
+                    <div>
+                        <h3 class="font-anton text-2xl text-yellow-400 tracking-wide uppercase mb-3 flex items-center gap-2">
+                            <span>🎁 Catálogo de Premios Exclusivos</span>
+                        </h3>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Reward 1: Xbox -->
+                            <div class="bg-black/80 border border-orange-500/40 rounded-xl p-4 flex flex-col justify-between hover:border-yellow-400 transition">
+                                <div>
+                                    <div class="bg-green-600 text-white font-bold text-[10px] uppercase px-2 py-0.5 rounded w-max mb-2 flex items-center gap-1">
+                                        <i class="fa-brands fa-xbox"></i> Gaming
+                                    </div>
+                                    <h4 class="font-bold text-base text-white">Bono Xbox Game Pass</h4>
+                                    <p class="text-xs text-gray-400 mt-1">Código de suscripción para jugar cientos de títulos en PC y Consola.</p>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-orange-500/20 flex items-center justify-between">
+                                    <span class="font-anton text-xl text-yellow-400">5.000 PTS</span>
+                                    <button onclick="redeemReward('Bono Xbox Game Pass', 5000)" class="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded-lg transition">
+                                        Redimir
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Reward 2: Nequi -->
+                            <div class="bg-black/80 border border-orange-500/40 rounded-xl p-4 flex flex-col justify-between hover:border-yellow-400 transition">
+                                <div>
+                                    <div class="bg-fuchsia-700 text-white font-extrabold text-[10px] uppercase px-2 py-0.5 rounded w-max mb-2">Recarga Directa</div>
+                                    <h4 class="font-bold text-base text-white">Recarga Nequi $20.000</h4>
+                                    <p class="text-xs text-gray-400 mt-1">Dinero abonado directamente a tu cuenta de Nequi registrada.</p>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-orange-500/20 flex items-center justify-between">
+                                    <span class="font-anton text-xl text-yellow-400">3.500 PTS</span>
+                                    <button onclick="redeemReward('Recarga Nequi $20.000', 3500)" class="px-3 py-1.5 bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-extrabold text-xs rounded-lg transition">
+                                        Redimir
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Reward 3: Netflix -->
+                            <div class="bg-black/80 border border-orange-500/40 rounded-xl p-4 flex flex-col justify-between hover:border-yellow-400 transition">
+                                <div>
+                                    <div class="bg-red-600 text-white font-bold text-[10px] uppercase px-2 py-0.5 rounded w-max mb-2 flex items-center gap-1">
+                                        <i class="fa-solid fa-tv"></i> Streaming
+                                    </div>
+                                    <h4 class="font-bold text-base text-white">Bono Netflix $30.000</h4>
+                                    <p class="text-xs text-gray-400 mt-1">Tarjeta de regalo para abonar saldo a tu cuenta de Netflix.</p>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-orange-500/20 flex items-center justify-between">
+                                    <span class="font-anton text-xl text-yellow-400">2.000 PTS</span>
+                                    <button onclick="redeemReward('Bono Netflix $30.000', 2000)" class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-lg transition">
+                                        Redimir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Points History Table -->
+                    <div class="bg-black/80 border border-orange-500/40 rounded-2xl p-4">
+                        <h4 class="font-anton text-lg text-orange-400 tracking-wide uppercase mb-3">Historial de Puntos Acumulados</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-orange-950/60 text-yellow-400 uppercase font-anton">
+                                    <tr>
+                                        <th class="p-2.5">Fecha</th>
+                                        <th class="p-2.5">Concepto</th>
+                                        <th class="p-2.5 text-right">Puntos</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body" class="divide-y divide-orange-500/20 text-gray-300">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </main>
+
+    <div id="toast-modal" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-black/95 border-2 border-yellow-400 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center space-x-3">
+            <span id="toast-icon" class="text-2xl text-yellow-400">🎉</span>
+            <div>
+                <h5 id="toast-title" class="font-anton text-base text-yellow-400 uppercase leading-none">¡ÉXITO!</h5>
+                <p id="toast-message" class="text-xs text-gray-200 mt-1">Acción completada exitosamente.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="w-full bg-black/80 border-t border-orange-500/20 py-4 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>© 2026 Cheetos Pop Mix Demo. Marca registrada de PepsiCo. Todos los derechos reservados.</p>
+            <p class="text-orange-400/80 font-semibold">Desarrollado para Demo Cliente</p>
+        </div>
+    </footer>
+
+    <script>
+        // App State
+        let currentUser = null;
+        let authMode = 'login'; // 'login' or 'registro'
+
+        // Initial Ranking Mock Data matching Mockup Image 2
+        let rankingData = [
+            { name: "Camilo Vargas", points: 4450, isUser: true },
+            { name: "Valentina Gómez", points: 4120, isUser: false },
+            { name: "Santiago Mendoza", points: 3890, isUser: false },
+            { name: "Mariana Rojas", points: 3500, isUser: false },
+            { name: "Andrés Felipe Castro", points: 3100, isUser: false },
+            { name: "Daniela Morales", points: 2850, isUser: false },
+            { name: "Mateo Ortiz", points: 2400, isUser: false }
+        ];
+
+        // Points History
+        let pointsHistory = [
+            { date: "28/09/2026", concept: "Selfie - Cheetos Pop Mix 120g", points: "+1.200" },
+            { date: "20/09/2026", concept: "Bono de Registro Plataforma", points: "+1.000" },
+            { date: "15/09/2026", concept: "Selfie - Cheetos Pop Mix 220g", points: "+2.250" }
+        ];
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRankingTable();
+            renderHistoryTable();
+        });
+
+        function switchAuthTab(mode) {
+            authMode = mode;
+            const regBtn = document.getElementById('tab-registro-btn');
+            const loginBtn = document.getElementById('tab-login-btn');
+            const forgotContainer = document.getElementById('forgot-pass-container');
+
+            if (mode === 'login') {
+                loginBtn.className = "w-1/2 py-2 text-center font-anton text-xl tracking-wide uppercase transition btn-yellow-pill";
+                regBtn.className = "w-1/2 py-2 text-center font-anton text-xl tracking-wide uppercase transition text-gray-300 hover:text-white";
+                forgotContainer.style.display = 'block';
+            } else {
+                regBtn.className = "w-1/2 py-2 text-center font-anton text-xl tracking-wide uppercase transition btn-yellow-pill";
+                loginBtn.className = "w-1/2 py-2 text-center font-anton text-xl tracking-wide uppercase transition text-gray-300 hover:text-white";
+                forgotContainer.style.display = 'none';
+            }
+        }
+
+        function handleAuthSubmit(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('input-name').value.trim() || 'Camilo Vargas';
+            
+            // Set User State
+            currentUser = {
+                name: nameInput,
+                points: 4450
+            };
+
+            // Update user in ranking data if exists, or insert
+            const userInRank = rankingData.find(item => item.isUser);
+            if (userInRank) {
+                userInRank.name = currentUser.name;
+            } else {
+                rankingData[0].name = currentUser.name;
+            }
+
+            // Update Header Display
+            document.getElementById('user-name-display').innerText = currentUser.name;
+            document.getElementById('user-initials').innerText = getInitials(currentUser.name);
+            document.getElementById('user-points-display').innerText = formatPoints(currentUser.points);
+            document.getElementById('puntos-large-val').innerText = formatPoints(currentUser.points);
+            document.getElementById('header-user-bar').classList.remove('hidden');
+
+            // Trigger visual feedback and switch view
+            showNotification(`¡Bienvenido/a, ${currentUser.name}! Acceso concedido.`);
+            switchView('dashboard');
+            renderRankingTable();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('header-user-bar').classList.add('hidden');
+            switchView('login');
+            showNotification('Has cerrado sesión correctamente.', '👋');
+        }
+
+        function switchView(viewName) {
+            const viewLogin = document.getElementById('view-login');
+            const viewDashboard = document.getElementById('view-dashboard');
+
+            if (viewName === 'dashboard') {
+                viewLogin.classList.add('hidden');
+                viewDashboard.classList.remove('hidden');
+                switchDashboardTab('ranking');
+            } else {
+                viewDashboard.classList.add('hidden');
+                viewLogin.classList.remove('hidden');
+            }
+        }
+
+        function switchDashboardTab(tabName) {
+            const subRanking = document.getElementById('subview-ranking');
+            const subFactura = document.getElementById('subview-subir-factura');
+            const subPuntos = document.getElementById('subview-consultar-puntos');
+
+            const btnRank = document.getElementById('btn-tab-ranking');
+            const btnFact = document.getElementById('btn-tab-factura');
+            const btnPunt = document.getElementById('btn-tab-puntos');
+
+            // Reset buttons styling
+            const inactiveClass = "flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs uppercase transition border border-orange-500/50 bg-orange-950/80 text-orange-300 hover:bg-orange-600 hover:text-white";
+            const activeClass = "flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold text-xs uppercase transition border border-yellow-400/50 bg-yellow-400 text-black shadow-lg shadow-yellow-500/20";
+
+            btnRank.className = inactiveClass;
+            btnFact.className = inactiveClass;
+            btnPunt.className = inactiveClass;
+
+            subRanking.classList.add('hidden');
+            subFactura.classList.add('hidden');
+            subPuntos.classList.add('hidden');
+
+            if (tabName === 'ranking') {
+                subRanking.classList.remove('hidden');
+                btnRank.className = activeClass;
+            } else if (tabName === 'subir-factura') {
+                subFactura.classList.remove('hidden');
+                btnFact.className = activeClass;
+            } else if (tabName === 'consultar-puntos') {
+                subPuntos.classList.remove('hidden');
+                btnPunt.className = activeClass;
+            }
+        }
+
+        function renderRankingTable() {
+            const container = document.getElementById('ranking-list-container');
+            container.innerHTML = '';
+
+            // Sort ranking descending
+            rankingData.sort((a, b) => b.points - a.points);
+
+            rankingData.forEach((item, index) => {
+                const row = document.createElement('div');
+                const isUser = item.isUser;
+
+                row.className = `flex items-center justify-between px-5 py-3 rounded-xl border ${
+                    isUser 
+                    ? 'border-yellow-400 bg-orange-950/90 shadow-md shadow-orange-500/20' 
+                    : 'border-orange-500/50 bg-black/80 hover:border-orange-400'
+                } transition duration-200`;
+
+                row.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="font-anton text-sm ${index === 0 ? 'text-yellow-400' : 'text-gray-400'} w-5">
+                            #${index + 1}
+                        </span>
+                        <span class="font-bold text-sm ${isUser ? 'text-yellow-300' : 'text-white'}">
+                            ${item.name} ${isUser ? '<span class="text-[10px] bg-yellow-400 text-black px-1.5 py-0.2 rounded ml-1 font-extrabold uppercase">TÚ</span>' : ''}
+                        </span>
+                    </div>
+                    <span class="font-anton text-lg tracking-wider ${isUser ? 'text-yellow-400' : 'text-white'}">
+                        ${formatPoints(item.points)}
+                    </span>
+                `;
+
+                container.appendChild(row);
+            });
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+
+            pointsHistory.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2.5 text-gray-400 font-mono">${item.date}</td>
+                    <td class="p-2.5 font-medium">${item.concept}</td>
+                    <td class="p-2.5 text-right font-anton text-yellow-400">${item.points}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function triggerFileInput() {
+            document.getElementById('invoice-file-input').click();
+        }
+
+        function previewInvoiceFile(input) {
+            if (input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                document.getElementById('upload-preview-text').innerHTML = `
+                    <span class="text-yellow-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Selfie lista: ${fileName}</span>
+                `;
+            }
+        }
+
+        function handleInvoiceUpload(event) {
+            event.preventDefault();
+
+            const productSelect = document.getElementById('invoice-product');
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const productName = selectedOption.value;
+            const earnedPoints = parseInt(selectedOption.getAttribute('data-pts')) || 1200;
+
+            const btn = document.getElementById('btn-submit-invoice');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Validando Selfie con IA...`;
+
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = `<span>REGISTRAR Y GANAR PUNTOS</span> <i class="fa-solid fa-bolt text-yellow-300"></i>`;
+
+                // Add points to user
+                if (currentUser) {
+                    currentUser.points += earnedPoints;
+                    const userRank = rankingData.find(item => item.isUser);
+                    if (userRank) userRank.points = currentUser.points;
+
+                    // Update UI
+                    document.getElementById('user-points-display').innerText = formatPoints(currentUser.points);
+                    document.getElementById('puntos-large-val').innerText = formatPoints(currentUser.points);
+
+                    // Add to history
+                    const today = new Date().toLocaleDateString('es-CO');
+                    pointsHistory.unshift({
+                        date: today,
+                        concept: `Selfie - ${productName}`,
+                        points: `+${formatPoints(earnedPoints)}`
+                    });
+                    renderHistoryTable();
+                    renderRankingTable();
+                }
+
+                // Fire Confetti Animation
+                if (window.confetti) {
+                    confetti({
+                        particleCount: 80,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#ff5500', '#ffe600', '#d91010']
+                    });
+                }
+
+                showNotification(`¡Selfie validada! Ganaste +${formatPoints(earnedPoints)} Puntos`, '📸');
+                
+                // Reset form
+                document.getElementById('form-upload-invoice').reset();
+                document.getElementById('upload-preview-text').innerHTML = `
+                    Haz clic o sube una foto / selfie mostrando tu Cheetos Pop Mix abierto<br>
+                    <span class="text-[10px] text-gray-500">(JPG, PNG max 10MB)</span>
+                `;
+
+                // Switch back to ranking to view position bump
+                switchDashboardTab('ranking');
+            }, 1200);
+        }
+
+        function redeemReward(rewardName, cost) {
+            if (!currentUser) return;
+
+            if (currentUser.points >= cost) {
+                currentUser.points -= cost;
+                const userRank = rankingData.find(item => item.isUser);
+                if (userRank) userRank.points = currentUser.points;
+
+                document.getElementById('user-points-display').innerText = formatPoints(currentUser.points);
+                document.getElementById('puntos-large-val').innerText = formatPoints(currentUser.points);
+
+                // Add negative history
+                const today = new Date().toLocaleDateString('es-CO');
+                pointsHistory.unshift({
+                    date: today,
+                    concept: `Redención: ${rewardName}`,
+                    points: `-${formatPoints(cost)}`
+                });
+                renderHistoryTable();
+                renderRankingTable();
+
+                showNotification(`¡Felicidades! Redimiste "${rewardName}". Código enviado a tu correo.`, '🎁');
+            } else {
+                showNotification(`Te faltan ${formatPoints(cost - currentUser.points)} puntos para este premio. ¡Registra más compras!`, '⚠️');
+            }
+        }
+
+        function formatPoints(val) {
+            return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        function showNotification(msg, icon = '🎉') {
+            const toast = document.getElementById('toast-modal');
+            document.getElementById('toast-message').innerText = msg;
+            document.getElementById('toast-icon').innerText = icon;
+
+            toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
